@@ -1,6 +1,9 @@
+# Patched version for use with cyrilic names cannel. For Russian users.
+
 # PyLgNetcast
 
 A Python 3 library and command line tool to control LG Smart TV running NetCast 3.0 (LG Smart TV models released in 2012) and NetCast 4.0 (LG Smart TV models released in 2013) via TCP/IP.
+
 
 ## Dependencies
 
