@@ -3,7 +3,7 @@ Client library for the LG Smart TV running NetCast 3 or 4.
 
 LG Smart TV models released in 2012 (NetCast 3.0) and LG Smart TV models
 released in 2013 (NetCast 4.0) are supported.
-For pre 2012 LG TV remote commands are supported by the "hdcp" protocol.
+For pre 2012 LG TV remotes are supported by the "hdcp" protocol.
 
 The client is inspired by the work of
 https://github.com/ubaransel/lgcommander
@@ -117,6 +117,7 @@ class LgNetCastClient(object):
     """LG NetCast TV client using the ROAP or HDCP protocol."""
 
     HEADER = {'Content-Type': 'application/atom+xml'}
+    PERSIST = {'Connection': 'Keep-Alive'}
     XML = '<?xml version=\"1.0\" encoding=\"utf-8\"?>'
     KEY = XML + '<auth><type>AuthKeyReq</type></auth>'
     AUTH = XML + '<auth><type>%s</type><value>%s</value></auth>'
@@ -128,21 +129,25 @@ class LgNetCastClient(object):
         self.access_token = access_token
         self.protocol = protocol
         self._session = None
+        self._requester = None
 
     def __enter__(self):
         """Context manager method to support with statement."""
         self._session = self._get_session_id()
+        self._requester = requests.Session()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager method to support with statement."""
         self._session = None
-
+        self._requester.post(url=self.url, data={}, headers={'Connection':'close'})
+        self._requester = None
+                      
     def send_command(self, command):
         """Send remote control commands to the TV."""
         message = self.COMMAND % (self._session, LG_HANDLE_KEY_INPUT,
                                   '<value>%s</value>' % command)
-        self._send_to_tv('command', message)
+        response = self._send_to_tv('command', message)
 
     def change_channel(self, channel):
         """Send change channel command to the TV."""
@@ -185,17 +190,29 @@ class LgNetCastClient(object):
         """Send message to display the pair key on TV screen."""
         self._send_to_tv('auth', self.KEY)
 
-    def _send_to_tv(self, message_type, message=None, payload=None):
+    def _send_to_tv(self, message_type, message=None, payload=None, keep_alive=False):
         """Send message of given type to the tv."""
         if message_type != 'command' and self.protocol == LG_PROTOCOL.HDCP:
             message_type = 'dtv_wifirc'
         url = '%s%s' % (self.url, message_type)
-        if message:
-            response = requests.post(url, data=message, headers=self.HEADER,
-                                     timeout=DEFAULT_TIMEOUT)
+        
+        if self._session:
+            if message:
+                response = self._requester.post(url, data=message,
+                                                headers=self.HEADER,
+                                                timeout=DEFAULT_TIMEOUT)
+            else:
+                response = self._requester.get(url, params=payload,
+                                               headers=self.HEADER, **self.PERSIST,
+                                               timeout=DEFAULT_TIMEOUT)
         else:
-            response = requests.get(url, params=payload, headers=self.HEADER,
-                                    timeout=DEFAULT_TIMEOUT)
+            if message:
+                response = requests.post(url, data=message, headers=self.HEADER,
+                                         timeout=DEFAULT_TIMEOUT)
+            else:
+                response = requests.get(url, params=payload, headers=self.HEADER,
+                                        timeout=DEFAULT_TIMEOUT)
+        
         return response
 
 
