@@ -117,7 +117,6 @@ class LgNetCastClient(object):
     """LG NetCast TV client using the ROAP or HDCP protocol."""
 
     HEADER = {'Content-Type': 'application/atom+xml'}
-    PERSIST = {'Connection': 'Keep-Alive'}
     XML = '<?xml version=\"1.0\" encoding=\"utf-8\"?>'
     KEY = XML + '<auth><type>AuthKeyReq</type></auth>'
     AUTH = XML + '<auth><type>%s</type><value>%s</value></auth>'
@@ -140,7 +139,7 @@ class LgNetCastClient(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager method to support with statement."""
         self._session = None
-        self._requester.post(url=self.url, data={}, headers={'Connection':'close'})
+        self._requester.post(url=self.url, data={}, headers={'Connection': 'Close'})
         self._requester = None
                       
     def send_command(self, command):
@@ -190,7 +189,7 @@ class LgNetCastClient(object):
         """Send message to display the pair key on TV screen."""
         self._send_to_tv('auth', self.KEY)
 
-    def _send_to_tv(self, message_type, message=None, payload=None, keep_alive=False):
+    def _send_to_tv(self, message_type, message=None, payload=None):
         """Send message of given type to the tv."""
         if message_type != 'command' and self.protocol == LG_PROTOCOL.HDCP:
             message_type = 'dtv_wifirc'
@@ -203,7 +202,7 @@ class LgNetCastClient(object):
                                                 timeout=DEFAULT_TIMEOUT)
             else:
                 response = self._requester.get(url, params=payload,
-                                               headers=self.HEADER, **self.PERSIST,
+                                               headers=self.HEADER,
                                                timeout=DEFAULT_TIMEOUT)
         else:
             if message:
