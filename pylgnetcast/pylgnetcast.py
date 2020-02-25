@@ -105,6 +105,7 @@ class LG_QUERY(object):
     VOLUME_INFO = 'volume_info'
     SCREEN_IMAGE = 'screen_image'
     IS_3D = 'is_3d'
+    APP_LIST = 'app_list'
 
 
 class LG_PROTOCOL(object):
@@ -160,7 +161,7 @@ class LgNetCastClient(object):
         response = self._send_to_tv('data', payload={'target': query})
         if response.status_code == requests.codes.ok:
             data = response.text
-            tree = ElementTree.fromstring(data.encode('utf-8'))
+            tree = ElementTree.XML(data)
             data_list = []
             for data in tree.iter('data'):
                 data_list.append(data)
