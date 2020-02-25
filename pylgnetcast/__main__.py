@@ -40,6 +40,8 @@ def main():
                 print('Sent command %s' % args.command)
 
             infos = {'Channel Info': LG_QUERY.CUR_CHANNEL,
+                     'Channel List': LG_QUERY.CHANNEL_LIST,
+                     'App List': LG_QUERY.APP_LIST,
                      'Volume Info': LG_QUERY.VOLUME_INFO,
                      'Context Info': LG_QUERY.CONTEXT_UI,
                      'Is 3D': LG_QUERY.IS_3D}
