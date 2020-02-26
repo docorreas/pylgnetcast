@@ -24,6 +24,8 @@ LG_HANDLE_MOUSE_MOVE = 'HandleTouchMove'
 LG_HANDLE_MOUSE_CLICK = 'HandleTouchClick'
 LG_HANDLE_TOUCH_WHEEL = 'HandleTouchWheel'
 LG_HANDLE_CHANNEL_CHANGE = 'HandleChannelChange'
+LG_APP_EXECUTE = 'AppExecute'
+LG_APP_TERMINATE = 'AppTerminate'
 
 DEFAULT_PORT = 8080
 DEFAULT_TIMEOUT = 3
@@ -105,7 +107,7 @@ class LG_QUERY(object):
     VOLUME_INFO = 'volume_info'
     SCREEN_IMAGE = 'screen_image'
     IS_3D = 'is_3d'
-    APP_LIST = 'app_list'
+    APP_LIST = 'applist_get'
 
 
 class LG_PROTOCOL(object):
@@ -122,6 +124,9 @@ class LgNetCastClient(object):
     KEY = XML + '<auth><type>AuthKeyReq</type></auth>'
     AUTH = XML + '<auth><type>%s</type><value>%s</value></auth>'
     COMMAND = XML + '<command><session>%s</session><type>%s</type>%s</command>'
+    APPEXECUTE = XML + '<command><session>%s</session><name>%s</name><auid>%s</auid><appname>%s</appname><contentId>%s</contentId></command>'
+    APPTERMINATE = XML + '<command><session>%s</session><name>%s</name><auid>%s</auid><appname>%s</appname></command>'
+
 
     def __init__(self, host, access_token, protocol=LG_PROTOCOL.ROAP):
         """Initialize the LG TV client."""
@@ -147,6 +152,18 @@ class LgNetCastClient(object):
         """Send remote control commands to the TV."""
         message = self.COMMAND % (self._session, LG_HANDLE_KEY_INPUT,
                                   '<value>%s</value>' % command)
+        response = self._send_to_tv('command', message)
+
+    def app_execute(self, auid, appname, contentId):
+        """Send remote control commands to the TV."""
+        message = self.APPEXECUTE % (self._session, LG_APP_EXECUTE,
+                                     auid, appname, contentId)
+        response = self._send_to_tv('command', message)
+
+    def app_terminate(self, auid, appname):
+        """Send remote control commands to the TV."""
+        message = self.APPTERMINATE % (self._session, LG_APP_TERMINATE,
+                                     auid, appname)
         response = self._send_to_tv('command', message)
 
     def change_channel(self, channel):
