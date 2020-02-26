@@ -175,7 +175,7 @@ class LgNetCastClient(object):
 
     def query_data(self, query):
         """Query status information from the TV."""
-        response = self._send_to_tv('data', payload={'target': query})
+        response = self._send_to_tv('data', payload={'target': query, 'type': 1, 'index': 0, 'number': 0})
         if response.status_code == requests.codes.ok:
             data = response.text
             tree = ElementTree.XML(data)
